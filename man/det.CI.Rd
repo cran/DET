@@ -6,7 +6,8 @@
 \usage{
 det.CI(responses, predictors, conf = 0.95, names = c(""),
   positive = "", title = "", legend = "topright", parallel = FALSE,
-  ncores = 2, file, plotROC = FALSE)
+  ncores = 2, file, plotROC = FALSE, xlim = c(0.05, 50),
+  ylim = c(0.05, 50))
 }
 \arguments{
 \item{responses}{A dataframe of factor, numeric or character vector of responses, typically encoded with 0 (non-target) and 1 (target).  By default, the first two values of levels(as.factor(response)) are taken. If only one response is passed, 
@@ -31,6 +32,10 @@ it will be used for calculating all the curves.}
 \item{file}{The name of the file where the plot will be saved . If Empty, the DET and ROC curves are plotted by the graphic output.}
 
 \item{plotROC}{Boolean specifying ploting or not the ROC Curve}
+
+\item{xlim}{numeric vector of length 2, giving the x coordinates range.}
+
+\item{ylim}{numeric vector of length 2, giving the y coordinates range.}
 }
 \value{
 A list of dataframe, one per classifier. Each dataframe contains the name of the pair, and the 

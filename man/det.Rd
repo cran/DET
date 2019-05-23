@@ -5,7 +5,8 @@
 \title{DET Curve calculation}
 \usage{
 det(responses, predictors, names = c(""), positive = "", title = "",
-  legend = "topright", file, plotROC = FALSE)
+  legend = "topright", file, plotROC = FALSE, xlim = c(0.05, 50),
+  ylim = c(0.05, 50))
 }
 \arguments{
 \item{responses}{A dataframe of factor, numeric or character vector of responses, typically encoded with 0 (non-target) and 1 (target).  By default, the first two values of levels(as.factor(response)) are taken. If only one response is passed, 
@@ -24,10 +25,14 @@ it will be used for calculating all the curves.}
 \item{file}{The name of the file where the plot will be saved. If Empty, the DET and ROC curves are plotted by the graphic output.}
 
 \item{plotROC}{Boolean specifying ploting or not the ROC Curve}
+
+\item{xlim}{numeric vector of length 2, giving the x coordinates range.}
+
+\item{ylim}{numeric vector of length 2, giving the y coordinates range.}
 }
 \value{
 A list of dataframe, one per classifier. Each dataframe contains the name of the classifier, and the 
-parameters of the DET curve (FPR, FNR and the thresholds used)
+parameters of the DET curve (FPR, FNR and the thresholds used), along with the Equal Error Rate (%).
 }
 \description{
 From a dataframe of responses and predictors, the function calculates and plots the DET curves for each pair (response,predictor). In addition, ROC curves can be displayed by activating a boolean argument.

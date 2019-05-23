@@ -20,6 +20,8 @@
 #' @param ncores The number of nodes to be forked for the parallel computation. Default: 2.
 #' @param file The name of the file where the plot will be saved . If Empty, the DET and ROC curves are plotted by the graphic output.
 #' @param plotROC Boolean specifying ploting or not the ROC Curve
+#' @param xlim numeric vector of length 2, giving the x coordinates range.
+#' @param ylim numeric vector of length 2, giving the y coordinates range.
 #' @return A list of dataframe, one per classifier. Each dataframe contains the name of the pair, and the 
 #' parameters of the DET curve (FPR, the median of FNR and the upper and lower extremes for the CI, and the thresholds used)
 #' @examples
@@ -54,16 +56,26 @@
 #' @import pROC
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel detectCores makeCluster stopCluster
-#' @importFrom grDevices col2rgb dev.off png rgb
+#' @importFrom grDevices col2rgb dev.off pdf rgb
 #' @importFrom graphics axis grid legend lines plot points polygon par
 #' @importFrom stats qnorm
-det.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",title = "",legend = "topright",parallel = FALSE,ncores = 2,file, plotROC = FALSE){
+det.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",title = "",legend = "topright",parallel = FALSE,ncores = 2,file, plotROC = FALSE,xlim = c(0.05,50),ylim = c(0.05,50)){
   if (length(responses) == 0 || length(predictors) == 0 ) {
     stop("'responses' or 'predictors' are empty dataframes")
   }
   if (length(responses) > 1 &&  length(responses) != length(predictors)  ) {
     stop("Different number of 'responses' and 'predictors'")
   }
+  if (xlim[1] >= xlim[2] || ylim[1] >= ylim[2] ) {
+    stop("Bad X or Y ranges")
+  }
+  if (xlim[1] < 0 || ylim[1] < 0 ) {
+    stop("xlim and ylim have to be between 0 and 100")
+  }
+  if (xlim[1] == 0) xlim[1] =  0.05
+  if (xlim[2] == 100) xlim[2] =  99.95
+  if (ylim[1] == 0) ylim[1] =  0.05
+  if (ylim[2] == 100) ylim[2] =  99.95
   colores = c("black","blue","red","green","yellow")
   coloreslight = c("lightgray","lightblue","lightpink","lightgreen","lightyellow")
   big_integer = 2147483647 #Constant for ploting DET Curve
@@ -145,18 +157,37 @@ det.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",title
     }
 
   }
-  if(!missing(file) && plotROC) {png(paste(file,"ROC.png",sep=""), width = 540, height = 540)}
+  if(!missing(file) && plotROC) {pdf(paste(file,"ROC.pdf",sep=""), width = 10, height = 10)}
   #Draw ROC Curves with IC
   if(plotROC){
+    plot(x = NaN,y = NaN,type = 'n',
+         xlab = '1 - Specificity',xlim = c(-0.1,1.1), ylim  = c(-0.1,1.1),ylab = 'Sensitivity',
+         panel.first = grid(nx = 20, ny = 20),main = paste(title,"ROC Curves"))
     for (i in seq(ncurves)) {
-      if(i==1){
-        plot(ROCs[[i]],col=colores[i],main = paste("ROC Curves",title))
-        plot(ICsens[[i]],type="shape",col=rgb(col2rgb(coloreslight[i])[1]/255, col2rgb(coloreslight[i])[2]/255, col2rgb(coloreslight[i])[3]/255,0.2))
-      }else{
-        plot(ROCs[[i]],add=TRUE, col=colores[i])
-        plot(ICsens[[i]],type="shape",col=rgb(col2rgb(coloreslight[i])[1]/255, col2rgb(coloreslight[i])[2]/255, col2rgb(coloreslight[i])[3]/255,0.2))
-      }
+        fpr=1-ROCs[[i]]$specificities
+        tpr1 = as.numeric(ICsens[[i]][,1])
+        tpr0 = as.numeric(ICsens[[i]][,2])
+        tpr2 = as.numeric(ICsens[[i]][,3])
+        x = fpr
+        y0 = tpr0
+        y1 = tpr1
+        y2 = tpr2
+        x[x==Inf] = 1
+        x[x==-Inf]= 0
+        y1[y1==-Inf]= 0
+        y2[y2==-Inf]= 0
+        x = c(1,x,0)
+        y0 = c(1,y0,0)
+        y1 = c(1,y1,0)
+        y2 = c(1,y2,0)
+        lines(x, y0, col = colores[i], lwd=2 )
+        points(x,y1,type="l",col=colores[i])
+        points(x,y2,type="l",col=colores[i])
+        polygon(c(x,rev(x)),c(y2,rev(y1)),
+                col=rgb(col2rgb(coloreslight[i])[1]/255, col2rgb(coloreslight[i])[2]/255, col2rgb(coloreslight[i])[3]/255,0.2),
+                border = NA)
     }
+    lines(seq(0,1,0.1), seq(0,1,0.1), col = "gray",lty=6)
     if(!is.null(legend)){
       legend("bottomright", legend=names,
              col=colores[1:ncurves], lty=1, cex=0.7)
@@ -165,27 +196,40 @@ det.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",title
 
   if(!missing(file) && plotROC) {dev.off()}
 
-  if(!missing(file)) {png(paste(file,"DET.png",sep=""), width = 540, height = 540)}
+  if(!missing(file)) {pdf(paste(file,"DET.pdf",sep=""), width = 10, height = 10)}
   #Draw DET Curves with IC
-  lims = qnorm(c(0.0005,0.5))
-  axises = c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50)
-  labels = c(0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 30, 40, 50)
+  lims_x = qnorm(xlim/100)
+  lims_y = qnorm(ylim/100)
+  axises_x = c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, seq(0.10,xlim[2]/100,0.10))
+  labels_x = c(0.1, 0.2, 0.5, 1, 2, 5, seq(10,xlim[2],10))
+  axises_y = c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, seq(0.10,xlim[2]/100,0.10))
+  labels_y = c(0.1, 0.2, 0.5, 1, 2, 5, seq(10,xlim[2],10))
   plot(x = NaN,y = NaN,type = 'n',
-       xlab = 'FPR(%)',xlim = lims, ylab = 'FNR(%)'
-       ,ylim = lims,xaxt='n',yaxt='n',panel.first = grid(nx = 20, ny = 20),main = paste("DET Curves",title))
-  axis(1, at=qnorm(axises),labels=labels)
-  axis(2, at=qnorm(axises),labels=labels)
+       xlab = 'FPR(%)',xlim = lims_x, ylab = 'FNR(%)'
+       ,ylim = lims_y,xaxt='n',yaxt='n',panel.first = grid(nx = 20, ny = 20),main = paste(title,"DET Curves"))
+  axis(1, at=qnorm(axises_x),labels=labels_x)
+  axis(2, at=qnorm(axises_y),labels=labels_y)
+  lines(seq(-100,100,0.1), seq(-100,100,0.1), col = "gray",lty=6)
+  lines(seq(-4,4,0.01), -seq(-4,4,0.01), col = "gray",lty=6)
   for (i in seq(ncurves)) {
     fpr=1-ROCs[[i]]$specificities
     fnr1 = 1-as.numeric(ICsens[[i]][,1])
     fnr0 = 1-as.numeric(ICsens[[i]][,2])
     fnr2 = 1-as.numeric(ICsens[[i]][,3])
+    EER0 = fpr[which.min(abs(fpr-fnr0))]
+    EER1 = fpr[which.min(abs(fpr-fnr1))]
+    EER2 = fpr[which.min(abs(fpr-fnr2))]
+    points(qnorm(EER0),qnorm(EER0),pch=19,col = colores[i],lwd=2.5)
+    points(qnorm(EER1),qnorm(EER1),pch=20,col = colores[i],lwd=2.5)
+    points(qnorm(EER2),qnorm(EER2),pch=20,col = colores[i],lwd=2.5)
+    
     x = qnorm(fpr)
     y0 = qnorm(fnr0)
     y1 = qnorm(fnr1)
     y2 = qnorm(fnr2)
     x[x==Inf] = big_integer
     x[x==-Inf]= -big_integer
+    y0[y0==-Inf]= -big_integer
     y1[y1==-Inf]= -big_integer
     y2[y2==-Inf]= -big_integer
     lines(x, y0, col = colores[i], lwd=2 )
@@ -203,7 +247,10 @@ det.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",title
     Info <- data.frame(
       DET = DET,
       name = names[i],
-      Thresholds = Thresholds[[i]]
+      Thresholds = Thresholds[[i]],
+      EER_median = EER0,
+      EER_lower = EER1,
+      EER_upper = EER2
     )
     ListInfo[[length(ListInfo)+1]] <- Info
   }
@@ -229,8 +276,10 @@ det.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",title
 #' @param legend the location of the leyend in the graph. Could be a single keyword from the list "bottomright", "bottom", "bottomleft", "left", "topleft", "top", "topright", "right", "center" and NULL. Default: "topright".
 #' @param file The name of the file where the plot will be saved. If Empty, the DET and ROC curves are plotted by the graphic output.
 #' @param plotROC Boolean specifying ploting or not the ROC Curve
+#' @param xlim numeric vector of length 2, giving the x coordinates range.
+#' @param ylim numeric vector of length 2, giving the y coordinates range.
 #' @return A list of dataframe, one per classifier. Each dataframe contains the name of the classifier, and the 
-#' parameters of the DET curve (FPR, FNR and the thresholds used)
+#' parameters of the DET curve (FPR, FNR and the thresholds used), along with the Equal Error Rate (%).
 #' @examples
 #' n <- 5000
 #' set.seed(12345)
@@ -264,13 +313,24 @@ det.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",title
 #'
 #' @export
 #' @import pROC
-#' @importFrom grDevices col2rgb dev.off png rgb
+#' @importFrom grDevices col2rgb dev.off pdf rgb
 #' @importFrom graphics axis grid legend lines plot points polygon par
 #' @importFrom stats qnorm
-det <-function(responses,predictors,names=c(""),positive="",title = "",legend = "topright",file, plotROC = FALSE){
+det <-function(responses,predictors,names=c(""),positive="",title = "",legend = "topright",file, plotROC = FALSE,xlim = c(0.05,50),ylim = c(0.05,50)){
   if (length(responses) == 0 || length(predictors) == 0 ) {
     stop("'responses' or 'predictors' are empty dataframes")
   }
+  if (xlim[1] >= xlim[2] || ylim[1] >= ylim[2] ) {
+    stop("Bad X or Y ranges")
+  }
+  if (xlim[1] < 0 || ylim[1] < 0 ) {
+    stop("xlim and ylim have to be between 0 and 100")
+  }
+  if (xlim[1] == 0) xlim[1] =  0.05
+  if (xlim[2] == 100) xlim[2] =  99.95
+  if (ylim[1] == 0) ylim[1] =  0.05
+  if (ylim[2] == 100) ylim[2] =  99.95
+  
   if (length(responses) > 1 &&  length(responses) != length(predictors)  ) {
     stop("Different number of 'responses' and 'predictors'")
   }
@@ -317,16 +377,21 @@ det <-function(responses,predictors,names=c(""),positive="",title = "",legend = 
     ROCs[[length(ROCs)+1]] <- curvaROC
     Thresholds[[length(Thresholds)+1]] <- curvaROC$thresholds
   }
-  if(!missing(file) && plotROC) {png(paste(file,"ROC.png",sep=""), width = 540, height = 540)}
+  if(!missing(file) && plotROC) {pdf(paste(file,"ROC.pdf",sep=""), width = 10, height = 10)}
   #Draw ROC Curves 
   if(plotROC){
     for (i in seq(ncurves)) {
       if(i==1){
-        plot(ROCs[[i]],col=colores[i], main = paste("ROC Curves",title))
+        plot(1-ROCs[[i]]$specificities,ROCs[[i]]$sensitivities,type="l",
+             panel.first = grid(nx = 20, ny = 20),col=colores[i], 
+             main = paste("ROC Curves",title),xlim = c(-0.1,1.1),
+             xlab = '1 - Specificity', ylab = 'Sensitivity',lwd=2)
       }else{
-        plot(ROCs[[i]],add=TRUE, col=colores[i])
+        lines(1-ROCs[[i]]$specificities,ROCs[[i]]$sensitivities,lty=1, col=colores[i],lwd=2)
       }
     }
+    lines(seq(0,1,0.1), seq(0,1,0.1), col = "gray",lty=6)
+    
     if(!is.null(legend)){
     legend("bottomright", legend=names,
            col=colores[1:ncurves], lty=1, cex=0.7)
@@ -334,20 +399,41 @@ det <-function(responses,predictors,names=c(""),positive="",title = "",legend = 
   }
 
   if(!missing(file) && plotROC) {dev.off()}
-  if(!missing(file)) {png(paste(file,"DET.png",sep=""), width = 540, height = 540)}
+  if(!missing(file)) {pdf(paste(file,"DET.pdf",sep=""), width = 10, height = 10)}
   #Draw DET Curves
-  lims = qnorm(c(0.0005,0.5))
-  axises = c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50)
-  labels = c(0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 30, 40, 50)
   
+  lims_x = qnorm(xlim/100)
+  lims_y = qnorm(ylim/100)
+  axises_x = c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, seq(0.10,1,0.10))
+  labels_x = c(0.1, 0.2, 0.5, 1, 2, 5, seq(10,100,10))
+  axises_y = c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, seq(0.10,1,0.10))
+  labels_y = c(0.1, 0.2, 0.5, 1, 2, 5, seq(10,100,10))
+  interval = c(1,length(labels_x))
+  while(labels_x[interval[1]] < xlim[1] || labels_x[interval[2]] > xlim[2] ){
+    if(labels_x[interval[1]] < xlim[1]) interval[1] = interval[1]+1
+    if(labels_x[interval[2]] > xlim[2]) interval[2] = interval[2]-1
+  }
+  axises_x = c(xlim[1]/100,axises_x[interval[1]:interval[2]],xlim[2]/100)
+  labels_x = c(xlim[1],labels_x[interval[1]:interval[2]],xlim[2])
+  interval = c(1,length(labels_y))
+  while(labels_y[interval[1]] < ylim[1] || labels_y[interval[2]] > ylim[2] ){
+    if(labels_y[interval[1]] < ylim[1]) interval[1] = interval[1]+1
+    if(labels_y[interval[2]] > ylim[2]) interval[2] = interval[2]-1
+  }
+  axises_y = c(ylim[1]/100,axises_y[interval[1]:interval[2]],ylim[2]/100)
+  labels_y = c(ylim[1],labels_y[interval[1]:interval[2]],ylim[2])
   plot(x = NaN,y = NaN,type = 'n',
-       xlab = 'FPR(%)',xlim = lims, ylab = 'FNR(%)'
-       ,ylim = lims,xaxt='n',yaxt='n',panel.first = grid(nx = 20, ny = 20), main = paste("DET Curves",title))
-  axis(1, at=qnorm(axises),labels=labels)
-  axis(2, at=qnorm(axises),labels=labels)
+       xlab = 'FPR(%)',xlim = lims_x, ylab = 'FNR(%)'
+       ,ylim = lims_y,xaxt='n',yaxt='n',panel.first = grid(nx = 20, ny = 20),
+       main = paste("DET Curves",title))
+  axis(1, at=qnorm(axises_x),labels=labels_x)
+  axis(2, at=qnorm(axises_y),labels=labels_y)
+  lines(seq(-100,100,0.1), seq(-100,100,0.1), col = "gray",lty=6)
+  lines(seq(-4,4,0.01), -seq(-4,4,0.01), col = "gray",lty=6)
   for (i in seq(ncurves)) {
     fpr=1-ROCs[[i]]$specificities
     fnr = 1-ROCs[[i]]$sensitivities
+    EER = fpr[which.min(abs(fpr-fnr))]
     x = qnorm(fpr)
     y = qnorm(fnr)
     x[x==Inf] = big_integer
@@ -355,6 +441,7 @@ det <-function(responses,predictors,names=c(""),positive="",title = "",legend = 
     y[y==-Inf]= -big_integer
     y[y==Inf]= big_integer
     lines(x, y, col = colores[i],lwd=2)
+    points(qnorm(EER),qnorm(EER),pch=19,col = colores[i],lwd=3)
     DET <- data.frame(
       fpr = fpr,
       fnr = fnr
@@ -362,7 +449,8 @@ det <-function(responses,predictors,names=c(""),positive="",title = "",legend = 
     Info <- data.frame(
       DET = DET,
       name = names[i],
-      Thresholds = Thresholds[[i]]
+      Thresholds = Thresholds[[i]],
+      EER = EER
     )
     ListInfo[[length(ListInfo)+1]] <- Info
   }
