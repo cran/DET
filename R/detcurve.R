@@ -22,8 +22,10 @@
 #' @param plotROC Boolean specifying ploting or not the ROC Curve
 #' @param xlim numeric vector of length 2, giving the x coordinates range.
 #' @param ylim numeric vector of length 2, giving the y coordinates range.
+#' @param col Array indicating a specification for the plotting color for DET curve of each classifier.
+#' @param colbands Array indicating a specification for the plotting color for DET CI bands of each classifier.
 #' @return A list of dataframe, one per classifier. Each dataframe contains the name of the pair, and the 
-#' parameters of the DET curve (FPR, the median of FNR and the upper and lower extremes for the CI, and the thresholds used), along with the Equal Error Rate (%).
+#' parameters of the DET curve (FPR, the median of FNR and the upper and lower extremes for the CI, and the thresholds used), along with the confidence interval for the Equal Error Rate .
 #' @examples
 #' \donttest{
 #' n <- 500
@@ -51,6 +53,15 @@
 #'                    title = "Example with CI",
 #'                    positive="target",
 #'                    parallel = TRUE)
+#' #If you want to plot the EER and its CI on the curves:
+#' for (name in names(detcurve)){
+#'     points(qnorm(detcurve[[name]]$EER_median),qnorm(detcurve[[name]]$EER_median),
+#'            pch=19,col = detcurve[[name]]$color,lwd=2.5)
+#'     points(qnorm(detcurve[[name]]$EER_lower),qnorm(detcurve[[name]]$EER_lower),
+#'            pch=20,col = detcurve[[name]]$color,lwd=2.5)
+#'     points(qnorm(detcurve[[name]]$EER_upper),qnorm(detcurve[[name]]$EER_upper),
+#'            pch=20,col = detcurve[[name]]$color,lwd=2.5)
+#' }
 #'}
 #' @export
 #' @import pROC
@@ -59,12 +70,18 @@
 #' @importFrom grDevices col2rgb dev.off pdf rgb
 #' @importFrom graphics axis grid legend lines plot points polygon par
 #' @importFrom stats qnorm
-detc.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",title = "",legend = "topright",parallel = FALSE,ncores = 2,file, plotROC = FALSE,xlim = c(0.05,50),ylim = c(0.05,50)){
+detc.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",title = "",
+                   legend = "topright",parallel = FALSE,ncores = 2,file, plotROC = FALSE,
+                   xlim = c(0.05,50),ylim = c(0.05,50), col = c("black","blue","red","green","yellow"),
+                   colbands = c("lightgray","lightblue","lightpink","lightgreen","lightyellow")){
   if (length(responses) == 0 || length(predictors) == 0 ) {
     stop("'responses' or 'predictors' are empty dataframes")
   }
   if (length(responses) > 1 &&  length(responses) != length(predictors)  ) {
     stop("Different number of 'responses' and 'predictors'")
+  }
+  if (!missing(col) && (length(predictors) != length(col) || length(colbands) != length(col))) {
+    stop("Different number of colors and predictors or colors for bands and color for curves")
   }
   if (xlim[1] >= xlim[2] || ylim[1] >= ylim[2] ) {
     stop("Bad X or Y ranges")
@@ -76,8 +93,8 @@ detc.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",titl
   if (xlim[2] == 100) xlim[2] =  99.95
   if (ylim[1] == 0) ylim[1] =  0.05
   if (ylim[2] == 100) ylim[2] =  99.95
-  colores = c("black","blue","red","green","yellow")
-  coloreslight = c("lightgray","lightblue","lightpink","lightgreen","lightyellow")
+  colores = col
+  coloreslight = colbands
   big_integer = 2147483647 #Constant for ploting DET Curve
   if(class(responses) != "data.frame" || class(predictors) != "data.frame"){
     stop("Bad type in arguments. Responses and predictors must be of class 'data.frame'")
@@ -233,9 +250,6 @@ detc.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",titl
     EER0 = 0.5*fpr[which.min(abs(fpr-fnr0))]+0.5*fnr0[which.min(abs(fpr-fnr0))]
     EER1 = 0.5*fpr[which.min(abs(fpr-fnr1))]+0.5*fnr1[which.min(abs(fpr-fnr1))]
     EER2 = 0.5*fpr[which.min(abs(fpr-fnr2))]+0.5*fnr2[which.min(abs(fpr-fnr2))]
-    points(qnorm(EER0),qnorm(EER0),pch=19,col = colores[i],lwd=2.5)
-    points(qnorm(EER1),qnorm(EER1),pch=20,col = colores[i],lwd=2.5)
-    points(qnorm(EER2),qnorm(EER2),pch=20,col = colores[i],lwd=2.5)
     
     x = qnorm(fpr)
     y0 = qnorm(fnr0)
@@ -264,9 +278,10 @@ detc.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",titl
       conf = conf,
       EER_median = EER0,
       EER_lower = EER1,
-      EER_upper = EER2
+      EER_upper = EER2,
+      color = colores[i]
     )
-    names(Info) = c("DET","conf","EER_median","EER_lower","EER_upper")
+    names(Info) = c("DET","conf","EER_median","EER_lower","EER_upper","color")
     ListInfo[[length(ListInfo)+1]] <- Info
   }
   if(!is.null(legend)){
@@ -293,8 +308,9 @@ detc.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",titl
 #' @param plotROC Boolean specifying ploting or not the ROC Curve
 #' @param xlim numeric vector of length 2, giving the x coordinates range.
 #' @param ylim numeric vector of length 2, giving the y coordinates range.
+#' @param col Array indicating a specification for the plotting color for DET curve of each classifier.
 #' @return A list of dataframe, one per classifier. Each dataframe contains the name of the classifier, and the 
-#' parameters of the DET curve (FPR, FNR and the thresholds used), along with the Equal Error Rate (%).
+#' parameters of the DET curve (FPR, FNR and the thresholds used), along with the Equal Error Rate.
 #' @examples
 #' n <- 5000
 #' set.seed(12345)
@@ -325,14 +341,23 @@ detc.CI <-function(responses,predictors,conf=0.95,names=c(""),positive = "",titl
 #'                 positive="target",
 #'                 title="Example",
 #'                 plotROC = TRUE)
-#'  
+#'                 
+#' #If you want to plot the EER and its CI on the curves:
+#' for (name in names(detcurve)){
+#'     points(qnorm(detcurve[[name]]$EER),qnorm(detcurve[[name]]$EER),
+#'            pch=19,col = detcurve[[name]]$color,lwd=3)
+#' }
+#'      
 #'
 #' @export
 #' @import pROC
 #' @importFrom grDevices col2rgb dev.off pdf rgb
 #' @importFrom graphics axis grid legend lines plot points polygon par
 #' @importFrom stats qnorm
-detc <-function(responses,predictors,names=c(""),positive="",title = "",legend = "topright",file, plotROC = FALSE,xlim = c(0.05,50),ylim = c(0.05,50)){
+detc <-function(responses,predictors,names=c(""),positive="",title = "",
+                legend = "topright",file, plotROC = FALSE,
+                xlim = c(0.05,50),ylim = c(0.05,50), 
+                col = c("black","blue","red","green","yellow")){
   if (length(responses) == 0 || length(predictors) == 0 ) {
     stop("'responses' or 'predictors' are empty dataframes")
   }
@@ -342,6 +367,9 @@ detc <-function(responses,predictors,names=c(""),positive="",title = "",legend =
   if (xlim[1] < 0 || ylim[1] < 0 ) {
     stop("xlim and ylim have to be between 0 and 100")
   }
+  if (!missing(col) && length(predictors) != length(col)) {
+    stop("Different number of colors and predictors")
+  }
   if (xlim[1] == 0) xlim[1] =  0.05
   if (xlim[2] == 100) xlim[2] =  99.95
   if (ylim[1] == 0) ylim[1] =  0.05
@@ -350,7 +378,7 @@ detc <-function(responses,predictors,names=c(""),positive="",title = "",legend =
   if (length(responses) > 1 &&  length(responses) != length(predictors)  ) {
     stop("Different number of 'responses' and 'predictors'")
   }
-  colores = c("black","blue","red","green","yellow")
+  colores = col
   big_integer = 2147483647 #Constant for ploting DET Curve
   if(class(responses) != "data.frame" || class(predictors) != "data.frame"){
     stop("Bad type in arguments. Responses and predictors must be of class 'data.frame'")
@@ -457,14 +485,13 @@ detc <-function(responses,predictors,names=c(""),positive="",title = "",legend =
     y[y==-Inf]= -big_integer
     y[y==Inf]= big_integer
     lines(x, y, col = colores[i],lwd=2)
-    points(qnorm(EER),qnorm(EER),pch=19,col = colores[i],lwd=3)
     DET <- data.frame(
       fpr = fpr,
       fnr = fnr,
       Thresholds = Thresholds[[i]]
     )
-    Info <- list(DET,EER)
-    names(Info) = c("DET","EER")
+    Info <- list(DET,EER,colores[i])
+    names(Info) = c("DET","EER","color")
     ListInfo[[length(ListInfo)+1]] <- Info
   }
   if(!is.null(legend)){

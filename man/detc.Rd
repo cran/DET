@@ -6,7 +6,8 @@
 \usage{
 detc(responses, predictors, names = c(""), positive = "", title = "",
   legend = "topright", file, plotROC = FALSE, xlim = c(0.05, 50),
-  ylim = c(0.05, 50))
+  ylim = c(0.05, 50), col = c("black", "blue", "red", "green",
+  "yellow"))
 }
 \arguments{
 \item{responses}{A dataframe of factor, numeric or character vector of responses, typically encoded with 0 (non-target) and 1 (target).  By default, the first two values of levels(as.factor(response)) are taken. If only one response is passed, 
@@ -29,10 +30,12 @@ it will be used for calculating all the curves.}
 \item{xlim}{numeric vector of length 2, giving the x coordinates range.}
 
 \item{ylim}{numeric vector of length 2, giving the y coordinates range.}
+
+\item{col}{Array indicating a specification for the plotting color for DET curve of each classifier.}
 }
 \value{
 A list of dataframe, one per classifier. Each dataframe contains the name of the classifier, and the 
-parameters of the DET curve (FPR, FNR and the thresholds used), along with the Equal Error Rate (%).
+parameters of the DET curve (FPR, FNR and the thresholds used), along with the Equal Error Rate.
 }
 \description{
 From a dataframe of responses and predictors, the function calculates and plots the DET curves for each pair (response,predictor). In addition, ROC curves can be displayed by activating a boolean argument.
@@ -67,6 +70,12 @@ detcurve <- detc(responses,predictors,
                 positive="target",
                 title="Example",
                 plotROC = TRUE)
- 
+                
+#If you want to plot the EER and its CI on the curves:
+for (name in names(detcurve)){
+    points(qnorm(detcurve[[name]]$EER),qnorm(detcurve[[name]]$EER),
+           pch=19,col = detcurve[[name]]$color,lwd=3)
+}
+     
 
 }

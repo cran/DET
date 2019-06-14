@@ -1,3 +1,13 @@
+# DET 2.0.1
+
+* `printDET()` shows the names of the classifiers to access de DET object.
+
+* `detc()` and `detc.CI()` do not plot the EER. How to to that is described at the example
+
+* `speaker` and `ovarianCancer` databases are added for complementing real examples of using DET curves.
+
+
+
 # DET 2.0.0
 
 * New function `printDET()` for describing the DET returned parameters.

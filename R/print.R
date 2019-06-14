@@ -9,6 +9,7 @@ printDET <- function (dets){
   if (!is.null(dets[[1]]$conf)){
   cat("The",dets[[1]]$conf*100,"% Confidence Interval has been calculated\n\n")
   }
+  cat("Classifiers names:",names(dets),"\n\n")
   cat("*The results are available in the following objects:\n\n")
   cat("name                description\n\n")
   cat("$DET                DET curve coordinates\n")
@@ -26,8 +27,10 @@ printDET <- function (dets){
   cat("$EER_median         median for EER CI\n")
   cat("$EER_lower          lower extreme of the EER CI\n")
   cat("$EER_upper          upper extreme of the EER CI\n")
+  cat("$color              color used for plot the DET curve\n")
   }else{
   cat("$EER                Equal Error Rate\n")
+  cat("$color              color used for plot the DET curve\n")
     
   }
   

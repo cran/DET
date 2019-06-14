@@ -7,7 +7,9 @@
 detc.CI(responses, predictors, conf = 0.95, names = c(""),
   positive = "", title = "", legend = "topright", parallel = FALSE,
   ncores = 2, file, plotROC = FALSE, xlim = c(0.05, 50),
-  ylim = c(0.05, 50))
+  ylim = c(0.05, 50), col = c("black", "blue", "red", "green",
+  "yellow"), colbands = c("lightgray", "lightblue", "lightpink",
+  "lightgreen", "lightyellow"))
 }
 \arguments{
 \item{responses}{A dataframe of factor, numeric or character vector of responses, typically encoded with 0 (non-target) and 1 (target).  By default, the first two values of levels(as.factor(response)) are taken. If only one response is passed, 
@@ -36,10 +38,14 @@ it will be used for calculating all the curves.}
 \item{xlim}{numeric vector of length 2, giving the x coordinates range.}
 
 \item{ylim}{numeric vector of length 2, giving the y coordinates range.}
+
+\item{col}{Array indicating a specification for the plotting color for DET curve of each classifier.}
+
+\item{colbands}{Array indicating a specification for the plotting color for DET CI bands of each classifier.}
 }
 \value{
 A list of dataframe, one per classifier. Each dataframe contains the name of the pair, and the 
-parameters of the DET curve (FPR, the median of FNR and the upper and lower extremes for the CI, and the thresholds used), along with the Equal Error Rate (%).
+parameters of the DET curve (FPR, the median of FNR and the upper and lower extremes for the CI, and the thresholds used), along with the confidence interval for the Equal Error Rate .
 }
 \description{
 From a dataframe of responses and predictors, the function calculates and plots DET curves for each pair (response,predictor), with a Confidence Interval. In addition, ROC curves can be displayed by activating a boolean argument.
@@ -71,5 +77,14 @@ detcurve <- detc.CI(responses,predictors,
                    title = "Example with CI",
                    positive="target",
                    parallel = TRUE)
+#If you want to plot the EER and its CI on the curves:
+for (name in names(detcurve)){
+    points(qnorm(detcurve[[name]]$EER_median),qnorm(detcurve[[name]]$EER_median),
+           pch=19,col = detcurve[[name]]$color,lwd=2.5)
+    points(qnorm(detcurve[[name]]$EER_lower),qnorm(detcurve[[name]]$EER_lower),
+           pch=20,col = detcurve[[name]]$color,lwd=2.5)
+    points(qnorm(detcurve[[name]]$EER_upper),qnorm(detcurve[[name]]$EER_upper),
+           pch=20,col = detcurve[[name]]$color,lwd=2.5)
+}
 }
 }
