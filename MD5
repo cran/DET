@@ -1,4 +1,4 @@
-23c83ae76db60cbec3722182100f61b7 *DESCRIPTION
+23a27e09a5a95115bc06f6875a9d3665 *DESCRIPTION
 78b3b9a2f9f1669be0d404d659d08593 *NAMESPACE
 e4a151552373b330146d2ae4a1b02775 *NEWS.md
 cc02253e17ce8552ae1b3867ba7cb0a5 *R/detcurve.R
@@ -6,8 +6,8 @@ cc02253e17ce8552ae1b3867ba7cb0a5 *R/detcurve.R
 67f25671e844206f4867d09aa1184e79 *R/print.R
 2a7460a04f9a8d74183bdcdf92894c3a *R/speaker-data.R
 07041f93fb5cb3e21522014223f001ac *data/datalist
-c68bfac61e69b945339d240667b8d706 *data/ovarianCancer.RData
-c7fafcc02689aa07d8d835f58c7a344a *data/ovarianCancer.rda
+7772013096750e2517ed363b245079ad *data/ovarianCancer.RData
+7772013096750e2517ed363b245079ad *data/ovarianCancer.rda
 1f00474e75830533057bc9f77c7f12a6 *data/speaker.RData
 b13c05b9f49fbff50905e395cb6f4787 *data/speaker.rda
 3885a250db48579db92b2cf75c413a57 *man/detc.CI.Rd
