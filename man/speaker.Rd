@@ -3,10 +3,12 @@
 \docType{data}
 \name{speaker}
 \alias{speaker}
-\title{Speaker Recognition System (Voxceleb verification test)}
-\format{An object of class \code{"data.frame"}.}
+\title{Data on a Speaker Recognition System (Voxceleb verification test)}
+\format{
+An object of class "data.frame".
+}
 \source{
-\href{http://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox1.html}{Web Archive}
+\href{https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox1.html}{Web Archive}
 }
 \usage{
 data(speaker)
@@ -19,27 +21,31 @@ utterance pairs, with the corresponding target or nontarget, and the task is to 
 belong to the same speaker or to different ones.
 }
 \examples{
+library(DET)
 data(speaker)
-scoresLDA <-speaker$scoresLDA
-scoresPLDA <-speaker$scoresPLDA
-scoresLDAPLDA <- speaker$scoresLDAPLDA
-responses <- data.frame(speaker$keys$V3)
-predictors <- data.frame(
-  n1 = as.numeric(scoresLDA),
-  n2 = as.numeric(scoresPLDA),
-  n3 = as.numeric(scoresLDAPLDA)
-)
-detcurve <- detc(responses,predictors, 
-                 names = c("LDA+DC","PLDA","LDA+PLDA"),
-                 positive = "target",
-                 title = "Voxceleb verification test",
-                 plotROC = TRUE)
+scoresLDA = speaker$scoresLDA
+scoresPLDA = speaker$scoresPLDA
+scoresLDAPLDA = speaker$scoresLDAPLDA
+predictors = matrix(c(as.numeric(scoresLDA),
+                      as.numeric(scoresPLDA),
+                      as.numeric(scoresLDAPLDA)), ncol = 3)
+colnames(predictors) = c("LDA", "PLDA", "LDAandPLDA")
+response = as.factor(speaker$keys$V3)
+detCurves =
+  detc(
+    response,
+    predictors,
+    names = colnames(predictors),
+    positive = "target"
+  )
+plot(detCurves, main = "Voxceleb verification test")
 
 }
 \references{
 Nagraniy A, Chungy JS, Zisserman A (2017). Proceedings of the Annual Conference of the International Speech Communication Association, 950:2616–2620
-(\href{http://www.robots.ox.ac.uk/~vgg/publications/2017/Nagrani17/nagrani17.pdf}{Publication})
+(\href{https://www.robots.ox.ac.uk/~vgg/publications/2017/Nagrani17/nagrani17.pdf}{Publication})
 }
-\keyword{cancer}
 \keyword{datasets}
-\keyword{ovarian}
+\keyword{recognition}
+\keyword{speaker}
+\keyword{system}

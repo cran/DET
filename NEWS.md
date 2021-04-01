@@ -1,3 +1,16 @@
+# DET 3.0.0
+
+* Adding class objects to model the DET curves
+
+* Override standard `plot()` function when called with a *DET* or *DETs* object
+
+* Renaming function `printDET()` to `show()`. 
+
+* New functions to compute performance measures: `EER()` and `mindDcf()`.
+
+* New functions to cplot the correspondent ROC curve from a DET curve: `plotROC` and `plotROCs`.
+
+
 # DET 2.0.1
 
 * `printDET()` shows the names of the classifiers to access de DET object.
