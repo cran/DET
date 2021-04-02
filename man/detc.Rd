@@ -83,7 +83,8 @@ detCurvesWithConfidenceInterval = detc(
   positive = "target",
   names = colnames(predictors),
   conf = 0.95,
-  parallel = TRUE
+  parallel = TRUE,
+  ncores = 2
 )
 }
 }

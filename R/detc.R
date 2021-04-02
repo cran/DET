@@ -54,7 +54,8 @@
 #'   positive = "target",
 #'   names = colnames(predictors),
 #'   conf = 0.95,
-#'   parallel = TRUE
+#'   parallel = TRUE,
+#'   ncores = 2
 #' )
 #' }
 #' @export
@@ -178,7 +179,8 @@ detc = function(response = NULL,
 #'   positive = "target",
 #'   names = colnames(predictors),
 #'   conf = 0.95,
-#'   parallel = TRUE
+#'   parallel = TRUE,
+#'   ncores = 2
 #' )
 #' }
 #' @export

@@ -1,8 +1,8 @@
-5822bf6a20a067e133a9a39ab9370046 *DESCRIPTION
+bcc8056c5743538d53b039028e31ebbd *DESCRIPTION
 05838c6801f106733269e5db554985c6 *NAMESPACE
 360c503475fe790a8bf069b904173d91 *NEWS.md
 40efb3414270961ed78149a683482b99 *R/classDefinitions.R
-d80368dbc75ef2e8d78c783026619932 *R/detc.R
+704726eed9929d7fa8675f2fd6867a47 *R/detc.R
 897dfd7f62bc6957457f265dc6efd71e *R/internalFunctions.R
 5741587d380eeefb029d76d77f7d0b7e *R/measures.R
 c5f5d584da66870daa7a22ecbdd2a254 *R/ovarianCancer-data.R
@@ -15,8 +15,8 @@ ec1593259c20facf75bcf844abe9f4c1 *R/show.R
 1f00474e75830533057bc9f77c7f12a6 *data/speaker.RData
 b13c05b9f49fbff50905e395cb6f4787 *data/speaker.rda
 f95e75f516ec7104fdafb55ab59e941d *man/EER.Rd
-3602bd03ccaaa1f2bdd197bf51737f29 *man/detc.Rd
-4a972393da8186c6796b4102aeb9808a *man/detc.ci.Rd
+aec3c3ed2d047d00f852c26b32c5715b *man/detc.Rd
+85f3e7bd85cdd7bb650ecd69d9100aef *man/detc.ci.Rd
 a40f695f16f10dd2c4537ef707773787 *man/minDcf.Rd
 b134347d421f6944df38e95add4d99be *man/ovarianCancer.Rd
 8f75c8cb484c3ac691e520983b969ec6 *man/plot.DET.Rd

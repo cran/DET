@@ -1,7 +1,7 @@
 Package: DET
 Type: Package
 Title: Representation of DET Curve with Confidence Intervals
-Version: 3.0.0
+Version: 3.0.1
 Authors@R: c(
   person("García-Ródenas, Álvaro",
          role = c("aut","cre"),
@@ -28,7 +28,7 @@ Depends: R (>= 3.5.0)
 Imports: pROC, doParallel, parallel, methods
 RoxygenNote: 7.1.1
 NeedsCompilation: no
-Packaged: 2021-04-01 17:59:00 UTC; arodenas
+Packaged: 2021-04-02 11:08:44 UTC; arodenas
 Author: García-Ródenas, Álvaro [aut, cre],
   Franco, Manuel [aut],
   Vivo, Juana-María [aut],
@@ -36,4 +36,4 @@ Author: García-Ródenas, Álvaro [aut, cre],
   Font, Roberto [aut]
 Maintainer: "García-Ródenas, Álvaro" <alvaro.garcia9@um.es>
 Repository: CRAN
-Date/Publication: 2021-04-01 18:40:02 UTC
+Date/Publication: 2021-04-02 23:00:02 UTC
