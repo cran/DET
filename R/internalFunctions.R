@@ -1,3 +1,4 @@
+#' @importFrom methods is
 assertDetCurveParameters = function(response,
                                     predictors,
                                     ncores,
@@ -5,7 +6,7 @@ assertDetCurveParameters = function(response,
                                     dets,
                                     names,
                                     nboot) {
-  if (!is.null(dets) && class(dets) != "DETs") {
+  if (!is.null(dets) && !is(dets, "DETs")) {
     stop("'dets' parameter needs to be an object of class 'DETs'.")
   }
   if (!is.null(dets) && !is.null(predictors)) {
@@ -14,11 +15,11 @@ assertDetCurveParameters = function(response,
     )
   }
   if (!is.null(predictors)) {
+    if (!is.matrix(predictors)) {
+        stop("Wrong type of argument: 'predictors' argument must be a 'matrix'.")
+    }
     if (length(response) == 0 || nrow(predictors) == 0) {
       stop("'response' or 'predictors' are empty.")
-    }
-    if (!is.matrix(predictors)) {
-      stop("Wrong type of argument: 'predictors' argument must be a 'matrix'.")
     }
     if (!is.factor(response)) {
       stop("Wrong type of argument: 'response' argument must be a 'factor'.")

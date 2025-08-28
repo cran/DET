@@ -1,10 +1,10 @@
 Package: DET
 Type: Package
 Title: Representation of DET Curve with Confidence Intervals
-Version: 3.0.1
+Version: 3.0.2
 Authors@R: c(
   person("García-Ródenas, Álvaro",
-         role = c("aut","cre"),
+         role = c("aut"),
          email = "alvaro.garcia9@um.es"),
   person("Franco, Manuel",
          role = c("aut"),
@@ -17,7 +17,10 @@ Authors@R: c(
          email = "jfernand@um.es"),
   person("Font, Roberto",
          role = c("aut"),
-         email = "roberto.font@biometricvox.com"))
+         email = "roberto.font@biometricvox.com"),
+  person("Curran, James",
+          role = c("cre"),
+          email = "j.curran@auckland.ac.nz"))
 Description: 
     Builds both ROC (Receiver Operating Characteristic) and DET (Detection Error Tradeoff) curves from a set of predictors, which are the
     results of a binary classification system. The curves give a general vision of the performance of the classifier,
@@ -26,14 +29,17 @@ License: GPL-2
 Encoding: UTF-8
 Depends: R (>= 3.5.0)
 Imports: pROC, doParallel, parallel, methods
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2021-04-02 11:08:44 UTC; arodenas
-Author: García-Ródenas, Álvaro [aut, cre],
+URL: https://github.com/jmcurran/DET
+BugReports: https://github.com/jmcurran/DET/issues
+Packaged: 2025-08-28 10:56:07 UTC; jcur002
+Author: García-Ródenas, Álvaro [aut],
   Franco, Manuel [aut],
   Vivo, Juana-María [aut],
   Fernández-Breis, Jesualdo T. [aut],
-  Font, Roberto [aut]
-Maintainer: "García-Ródenas, Álvaro" <alvaro.garcia9@um.es>
+  Font, Roberto [aut],
+  Curran, James [cre]
+Maintainer: "Curran, James" <j.curran@auckland.ac.nz>
 Repository: CRAN
-Date/Publication: 2021-04-02 23:00:02 UTC
+Date/Publication: 2025-08-28 17:40:10 UTC

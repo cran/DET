@@ -30,7 +30,7 @@ minDcf = function(det,
                   p = 0.01,
                   cFp = 1,
                   cFn = 10) {
-  if (class(det) != "DET") {
+  if (!is(det, "DET")) {
     stop("'det' parameter must be a 'DET' object.")
   }
   if (p<0 || p>1) {

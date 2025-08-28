@@ -5,7 +5,7 @@
 #' @param dets An object of class "DETs".
 #' @export
 show.DETs <- function(dets) {
-  if (class(dets) == "DETs") {
+  if (!is(dets, "DETs")) {
     cat("**Parameters of the Detection Error Tradeoff (DET) Curves**\n\n")
     cat("Classifiers names:", names(dets@detCurves), "\n\n")
     cat("*To access the list of DET Curves, take the attribute @detCurves\n")

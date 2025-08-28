@@ -1,8 +1,3 @@
-
-
-
-
-
 #' DET Curve calculation
 #'
 #' From a response and predictors, the function calculates the DET curve for each pair (response, predictor). Optionally, it can compute this curve with a Confidence Interval (CI).
@@ -76,6 +71,13 @@ detc = function(response = NULL,
                 ...) {
   if (is.null(dets)) {
     response = as.factor(response)
+  }
+  
+  if (!is.matrix(predictors)) {
+    if(is.vector(predictors)) {
+      ## if it's a vector, just change it to matrix with one column
+      predictors = matrix(predictors, ncol = 1)
+    }
   }
   
   assertDetCurveParameters(response, predictors, ncores, conf, dets, names, nboot)
