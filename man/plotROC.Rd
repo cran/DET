@@ -9,7 +9,7 @@ plotROC(dets, ...)
 \arguments{
 \item{dets}{A 'DET' object from the list of a 'DETs' object computed by the \code{detc} function.}
 
-\item{...}{Further graphical arguments passed to the plot function.}
+\item{...}{Further graphical arguments passed to the \code{plot} function.}
 }
 \description{
 From a 'DET' object, this function plots the ROC curve associated with the DET curve of the object. It also draws the confidence band when it is available in the object.
@@ -17,7 +17,7 @@ From a 'DET' object, this function plots the ROC curve associated with the DET c
 \examples{
 library(DET)
 n = 5000
-#Predictors with normal distribution
+# Predictors with normal distribution
 set.seed(1235)
 scoreNegative = rnorm(n, mean = 0.25, sd = 0.125)
 set.seed(11452)

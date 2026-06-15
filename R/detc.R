@@ -1,25 +1,25 @@
 #' DET Curve calculation
 #'
-#' From a response and predictors, the function calculates the DET curve for each pair (response, predictor). Optionally, it can compute this curve with a Confidence Interval (CI).
-#' Instead of a response and predictors, it can also receive a 'DETs' object to extract the results of the DET curves and compute the CIs.
-#' @param response A factor, typically encoded with 0 (non-target) and 1 (target). Also it can be a dicothomous variable which will be treated as a factor. By default, the level of response is taken as target.
-#' @param predictors A matrix which columns represent the values of each predictor.
+#' From a response and one or more predictors, the function calculates a DET curve for each response-predictor pair. Optionally, it can compute each curve with a confidence interval (CI).
+#' Instead of a response and predictors, it can also receive a 'DETs' object to extract existing DET curve results and compute CIs.
+#' @param response A factor, typically encoded with 0 (healthy, genuine user, signal, normal) and 1 (diseased, impostor user, noise, abnormal). It can also be a dichotomous variable that will be treated as a factor. By default, the second factor level is used as the positive class.
+#' @param predictors A matrix whose columns represent the values of each predictor.
 #' @param dets A 'DETs' object which will be used to compute the DET curves.
-#' @param names A character vector that will be used to set the names of the DET Curves. It will also appear on the graphic legend when is plotted.
-#' @param conf If present, it represents the confidence level of the CI of the DET Curve, within [0,1]. Default: The CI will not be computed.
-#' @param positive A string with the name of the 'positive' level which is setting as reference level of 'response'.
-#' @param parallel If TRUE, the bootstrap method to calculated the CI is processed in parallel, using the backend provided by \code{plyr} (foreach).
+#' @param names A character vector that will be used to set the names of the DET curves. They will also appear in the plot legend.
+#' @param conf If present, the confidence level for the DET curve CI, within [0,1]. Default: the CI is not computed.
+#' @param positive A string with the name of the 'positive' level used as the reference level of 'response'. If left as the default empty string, the second factor level of 'response' is used.
+#' @param parallel If TRUE, the bootstrap method used to calculate the CI is processed in parallel, using the backend provided by \code{plyr} (foreach).
 #' @param ncores The number of nodes to be forked for the parallel computation of the CI. Default: the maximum available. None used if \code{parallel = FALSE}.
 #' @param nboot The number of bootstrap replicates to be used for the computation of the CI. Default: 2000.
-#' @param plot If TRUE, the DETs curves will be plotted. Default: FALSE.
+#' @param plot If TRUE, the DET curves are plotted. Default: FALSE.
 #' @param ... Further attributes that will be passed to the \code{plot} function.
-#' @return A 'DETs' object. This object contains in the attribute 'detCurves' the list of DET curves, one per classifier. Each DET curve is an object of class "DET". This object contains the parameters of the DET curve (false positive ratio, false negative ratio, and the thresholds used), along with the Equal Error Rate (EER). If the CI was calculated, it includes the median,
-#' upper and lower extremes of the CI of the false negative ratio and EER. Check the \code{'show'} function to know more details on the outcomes saved in a 'DETs' object.
+#' @return A 'DETs' object. The object's 'detCurves' attribute contains one DET curve per classifier. Each DET curve is an object of class "DET", containing the DET curve parameters (false positive ratio, false negative ratio, and thresholds), along with the Equal Error Rate (EER). If the CI was calculated, the object also includes the median,
+#' upper, and lower CI limits for the false negative ratio and EER. Use the \code{show} method for more details about the results saved in a 'DETs' object.
 #' @examples
 #' \donttest{
 #' library(DET)
 #' n = 500
-#' #Predictors with normal distribution
+#' # Predictors with normal distribution
 #' set.seed(1235)
 #' scoreNegative1 = rnorm(n, mean = 0.25, sd = 0.125)
 #' set.seed(5321)
@@ -28,7 +28,7 @@
 #' scorePositive1 = rnorm(n, mean = 0.55, sd = 0.125)
 #' set.seed(54321)
 #' scorePositive2 = rnorm(n, mean = 0.65, sd = 0.125)
-#' response = as.factor(c(rep(c("target"), times = n), rep(c("nontarget"), times = n)))
+#' response = as.factor(c(rep(c("diseased"), times = n), rep(c("healthy"), times = n)))
 #' predictor1 = c(scoreNegative1, scorePositive1)
 #' predictor2 = c(scoreNegative2, scorePositive2)
 #' predictors = matrix(c(predictor1, predictor2), ncol = 2)
@@ -36,17 +36,16 @@
 #' detCurves = detc(
 #'   response,
 #'   predictors,
-#'   positive = "target",
+#'   positive = "diseased",
 #'   names = colnames(predictors)
 #' )
 #'
-#' #Run in parallel for a faster execution activating logical argument 'parallel'
-#' #and setting the number of cores of your computer
-#' #logical argument 'parallel'
+#' # Run in parallel for faster execution by activating the logical argument
+#' # 'parallel' and setting the number of cores of your computer
 #' detCurvesWithConfidenceInterval = detc(
 #'   response,
 #'   predictors,
-#'   positive = "target",
+#'   positive = "diseased",
 #'   names = colnames(predictors),
 #'   conf = 0.95,
 #'   parallel = TRUE,
@@ -54,7 +53,7 @@
 #' )
 #' }
 #' @export
-#' @import pROC
+#' @importFrom pROC roc ci.se
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel detectCores makeCluster stopCluster
 #' @importFrom methods new
@@ -138,11 +137,11 @@ detc = function(response = NULL,
 
 #' DET Curve calculation with CI
 #'
-#' From a 'DETs' object, the function extracts either computes the confidence interval (CI) of each DET curve of the object.
+#' From a 'DETs' object, the function extracts or computes the confidence interval (CI) of each DET curve in the object.
 #' @param dets A 'DETs' object which will be used to extract or compute the CIs of the DET curves.
-#' @param conf A single numeric value into the (0,1) interval,  which represents the confidence level of the CI of the DET Curve. Default: \code{conf = 0.95}.
-#' @param positive A string with the name of the 'positive' level which is setting as reference level of 'response'.
-#' @param parallel Boolean. By default \code{parallel = TRUE}. If TRUE, the bootstrap method to calculated the CI is processed in parallel, using the backend provided by \code{plyr} (foreach).
+#' @param conf A single numeric value in the (0,1) interval representing the confidence level of the DET curve CI. Default: \code{conf = 0.95}.
+#' @param positive A string with the name of the 'positive' level used as the reference level of 'response'. If left as the default empty string, the second factor level of 'response' is used.
+#' @param parallel Boolean. By default \code{parallel = TRUE}. If TRUE, the bootstrap method used to calculate the CI is processed in parallel, using the backend provided by \code{plyr} (foreach).
 #' @param ncores The number of nodes to be forked for the parallel computation of the CI. Default: the maximum available. None used if \code{parallel = FALSE}.
 #' @param nboot The number of bootstrap replicates to be used for the computation of the CI. Default: \code{nboot = 2000}.
 #' @param plot If TRUE, the CIs will be plotted for the DET curves. Default: \code{plot = FALSE}.
@@ -152,7 +151,7 @@ detc = function(response = NULL,
 #' \donttest{
 #' library(DET)
 #' n = 500
-#' #Predictors with normal distribution
+#' # Predictors with normal distribution
 #' set.seed(1235)
 #' scoreNegative1 = rnorm(n, mean = 0.25, sd = 0.125)
 #' set.seed(5321)
@@ -161,7 +160,7 @@ detc = function(response = NULL,
 #' scorePositive1 = rnorm(n, mean = 0.55, sd = 0.125)
 #' set.seed(54321)
 #' scorePositive2 = rnorm(n, mean = 0.65, sd = 0.125)
-#' response = as.factor(c(rep(c("target"), times = n), rep(c("nontarget"), times = n)))
+#' response = as.factor(c(rep(c("diseased"), times = n), rep(c("healthy"), times = n)))
 #' predictor1 = c(scoreNegative1, scorePositive1)
 #' predictor2 = c(scoreNegative2, scorePositive2)
 #' predictors = matrix(c(predictor1, predictor2), ncol = 2)
@@ -169,16 +168,15 @@ detc = function(response = NULL,
 #' detCurves = detc(
 #'   response,
 #'   predictors,
-#'   positive = "target",
+#'   positive = "diseased",
 #'   names = colnames(predictors)
 #' )
 #'
-#' #Run in parallel for a faster execution activating logical argument 'parallel'
-#' #and setting the number of cores of your computer
-#' #logical argument 'parallel'
+#' # Run in parallel for faster execution by activating the logical argument
+#' # 'parallel' and setting the number of cores of your computer
 #' detCurvesWithConfidenceInterval = detc.ci(
 #'   dets = detCurves,
-#'   positive = "target",
+#'   positive = "diseased",
 #'   names = colnames(predictors),
 #'   conf = 0.95,
 #'   parallel = TRUE,
@@ -186,7 +184,7 @@ detc = function(response = NULL,
 #' )
 #' }
 #' @export
-#' @import pROC
+#' @importFrom pROC roc ci.se
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel detectCores makeCluster stopCluster
 #' @importFrom methods new

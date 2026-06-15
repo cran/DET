@@ -12,11 +12,11 @@
 \item{...}{Further graphical arguments passed to the \code{plot} function.}
 }
 \description{
-From a 'DETs' object generated with the \code{detc} function, this function plots the different DET curves included in the object. It includes the
-Confidence band in case the DETs curves were calculated with a confidence interval.
+From a 'DETs' object generated with the \code{detc} function, this function plots the DET curves included in the object. It includes
+a confidence band when the DET curves were calculated with a confidence interval.
 }
 \details{
-It accepts plot personalization with graphical parameters (see \code{\link{plot}}, for more details):
+It accepts plot customisation with graphical parameters (see \code{\link{plot}}, for more details):
 
 -  'xlim': a numeric vector of length 2, giving the x coordinate range of the plot.
 
@@ -24,20 +24,20 @@ It accepts plot personalization with graphical parameters (see \code{\link{plot}
 
 -  'col': a vector of colors, specifying the color for each DET curve.
 
--  'labels_x': a numeric vector indicating the labels of the X axis.
+-  'labels_x': a numeric vector indicating the labels of the x-axis.
 
--  'labels_y': a numeric vector indicating the labels of the Y axis.
+-  'labels_y': a numeric vector indicating the labels of the y-axis.
 
--  'xlab': a main label for the X axis.
+-  'xlab': a main label for the x-axis.
 
--  'ylab': a main label for the Y axis.
+-  'ylab': a main label for the y-axis.
 
--  'panel.first': a background grid is plotted. It can be used for modifying the background style of the graphic.
+-  'panel.first': a background grid is plotted. It can be used for modifying the background style of the plot.
 }
 \examples{
 library(DET)
 n = 5000
-#Predictors with normal distribution
+# Predictors with normal distribution
 set.seed(1235)
 scoreNegative1 = rnorm(n, mean = 0.25, sd = 0.125)
 set.seed(5321)

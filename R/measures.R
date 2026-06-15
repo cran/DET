@@ -1,9 +1,9 @@
 #' Equal Error Rate computation
 #'
-#' From two vectors of false positive and false negative rates which define the points of the curve, the function computes the Equal Error Rate (EER).
-#' @param fpr A numeric vector representing the False Positive Rates.
-#' @param fnr A numeric vector representing the False Negative Rates.
-#' @return The Equal Error Rate (EER). 
+#' From two vectors of false positive and false negative rates that define the points of the curve, the function computes the Equal Error Rate (EER).
+#' @param fpr A numeric vector representing the false positive rates.
+#' @param fnr A numeric vector representing the false negative rates.
+#' @return The Equal Error Rate (EER).
 #' @export
 EER = function(fpr, fnr) {
   if ((!is.numeric(fpr) || !is.numeric(fnr)) || length(fpr) != length(fnr)) {
@@ -17,14 +17,20 @@ EER = function(fpr, fnr) {
 #'
 #' From a 'DET' object, the function computes the minimum value of the Detection Cost Function (minDCF).
 #' @param det An object of class "DET".
-#' @param p A single numeric value into the (0, 1) intervalrepresenting the prior probability of positive class.
-#' @param cFp A single numeric value representing the cost of False Positives.
-#' @param cFn A single numeric value representing the cost of False Negatives.
-#' @return A 'data.frame' with two attributes:
+#' @param p A single numeric value in the (0, 1) interval representing the prior probability of the positive class.
+#' @param cFp A single numeric value representing the cost of false positives.
+#' @param cFn A single numeric value representing the cost of false negatives.
+#' @return A list with five attributes:
 #'
 #' - 'minDcfValue': the computed minDCF.
 #'
 #' - 'minDcfIndex': the index of the fpr and fnr in which the minimum is reached.
+#'
+#' - 'minDcf_threshold': the cut-off point in which the minimum is reached.
+#'
+#' - 'minDcf_fpr': the fpr value in which the minimum is reached.
+#'
+#' - 'minDcf_fnr': the fnr value in which the minimum is reached.
 #' @export
 minDcf = function(det,
                   p = 0.01,
@@ -43,5 +49,10 @@ minDcf = function(det,
   fnr = det@fnr
   minDcfValue = min(p * cFn * fnr + (1 - p) * cFp * fpr)
   minDcfIndex = which.min(p * cFn * fnr + (1 - p) * cFp * fpr)
-  return(data.frame(minDcfValue = minDcfValue, minDcfIndex = minDcfIndex))
+  minDcf_threshold = det@thresholds[minDcfIndex] 
+  minDcf_fpr = fpr[minDcfIndex]
+  minDcf_fnr = fnr[minDcfIndex]
+  return(list(minDcfValue = minDcfValue, minDcfIndex = floor(minDcfIndex), 
+           minDcf_threshold = minDcf_threshold, minDcf_fpr =  minDcf_fpr,  minDcf_fnr = minDcf_fnr))
 }
+

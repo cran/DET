@@ -17,7 +17,7 @@ From a 'DET' object, this function plots the DET curve included in the object.
 \examples{
 library(DET)
 n = 5000
-#Predictors with normal distribution
+# Predictors with normal distribution
 set.seed(1235)
 scoreNegative = rnorm(n, mean = 0.25, sd = 0.125)
 set.seed(11452)

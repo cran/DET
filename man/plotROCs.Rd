@@ -9,31 +9,31 @@ plotROCs(dets, ...)
 \arguments{
 \item{dets}{An object of class "DETs".}
 
-\item{...}{Further graphical arguments passed to the plot function.}
+\item{...}{Further graphical arguments passed to the \code{plot} function.}
 }
 \description{
-From a 'DETs' object, this function plots the ROC curves associated with the DETs curves of the object. It includes the
-Confidence band when CIs were computed for the DETs curves.
+From a 'DETs' object, this function plots the ROC curves associated with the DET curves in the object. It includes a
+confidence band when CIs were computed for the DET curves.
 }
 \details{
-It accepts plot personalization with graphical parameters (see \code{\link{plot}}, for more details):
+It accepts plot customisation with graphical parameters (see \code{\link{plot}}, for more details):
 
 -  'xlim': a numeric vector of length 2, giving the x and y coordinate ranges of the plot.
 
 -  'col': a vector of colors, specifying the color for each DET curve.
 
--  'labels_x': a numeric vector indicating the labels of the X and Y axes.
+-  'labels_x': a numeric vector indicating the labels of the x- and y-axes.
 
--  'xlab': a main label for the X axis.
+-  'xlab': a main label for the x-axis.
 
--  'ylab': a main label for the Y axis.
+-  'ylab': a main label for the y-axis.
 
--  'panel.first': a background grid is plotted. It can be used for modifying the background style of the graphic.
+-  'panel.first': a background grid is plotted. It can be used for modifying the background style of the plot.
 }
 \examples{
 library(DET)
 n = 5000
-#Predictors with normal distribution
+# Predictors with normal distribution
 set.seed(1235)
 scoreNegative1 = rnorm(n, mean = 0.25, sd = 0.125)
 set.seed(5321)

@@ -1,6 +1,3 @@
-context("Testing the detc function")
-library(DET)
-
 response = as.factor(c("+", "-"))
 predictors = as.matrix(data.frame(predictor1 = c(1, 1),
                                   predictor2 = c(0, 1)))
@@ -23,8 +20,6 @@ test_that("detc errors for bad number of ncores", {
 })
 
 test_that("detc errors for bad types", {
-  expect_error(detc(c("+", "-"), predictors),
-               "'positive' argument must be one of the 'response' levels.")
   expect_error(detc(response, as.data.frame(predictors)),
                "Wrong type of argument: 'predictors' argument must be a 'matrix'.")
 })
@@ -34,6 +29,17 @@ test_that("detc errors for responses with more than 2 levels", {
   predictors <- as.matrix(data.frame(predictor1 = c(0.2, 0.4, 0.6)))
   expect_error(detc(response, predictors),
                "'response' argument must have two levels.")
+})
+
+
+test_that("detc uses the second response level as the default positive class", {
+  response = as.factor(c("negative", "positive", "positive", "negative"))
+  predictors = as.matrix(data.frame(predictor1 = c(0.2, 0.4, 0.6, 0.8)))
+
+  defaultDetCurve = detc(response, predictors)
+  explicitDetCurve = detc(response, predictors, positive = "positive")
+
+  expect_equal(defaultDetCurve, explicitDetCurve)
 })
 
 test_that("detc errors for positive class not in response levels", {

@@ -24,12 +24,12 @@ pointsEER(
 \item{...}{Further graphical arguments passed to the \code{points} function. For example, by default \code{pch = 19} and \code{lwd = 3} (see \code{\link{points}}, for more details).}
 }
 \description{
-From a 'DETs' object, this function plots the EER points of each classifier within the same graph of the DETs curves.
+From a 'DETs' object, this function plots the EER points of each classifier on the same graph as the DET curves.
 }
 \examples{
 library(DET)
 n = 5000
-#Predictors with normal distribution
+# Predictors with normal distribution
 set.seed(1235)
 scoreNegative1 = rnorm(n, mean = 0.25, sd = 0.125)
 set.seed(5321)

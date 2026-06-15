@@ -58,6 +58,9 @@ extractLevelsFromResponse = function(response, positive) {
   if (length(levels) != 2) {
     stop("'response' argument must have two levels.")
   }
+  if (identical(positive, "")) {
+    positive = levels[2]
+  }
   if (!any(levels == positive)) {
     stop("'positive' argument must be one of the 'response' levels.")
   }

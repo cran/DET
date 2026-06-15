@@ -1,7 +1,7 @@
 Package: DET
 Type: Package
 Title: Representation of DET Curve with Confidence Intervals
-Version: 3.0.2
+Version: 3.0.3
 Authors@R: c(
   person("García-Ródenas, Álvaro",
          role = c("aut"),
@@ -22,18 +22,20 @@ Authors@R: c(
           role = c("cre"),
           email = "j.curran@auckland.ac.nz"))
 Description: 
-    Builds both ROC (Receiver Operating Characteristic) and DET (Detection Error Tradeoff) curves from a set of predictors, which are the
-    results of a binary classification system. The curves give a general vision of the performance of the classifier,
-    and are useful for comparing performance of different systems.
+    Builds both ROC (Receiver Operating Characteristic) and DET (Detection Error Tradeoff) curves from a set of predictors that are the
+    results of a binary classification system. The curves give a general view of classifier performance
+    and are useful for comparing different systems.
 License: GPL-2
 Encoding: UTF-8
 Depends: R (>= 3.5.0)
 Imports: pROC, doParallel, parallel, methods
-RoxygenNote: 7.3.2
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3
+RoxygenNote: 7.3.3
 NeedsCompilation: no
 URL: https://github.com/jmcurran/DET
 BugReports: https://github.com/jmcurran/DET/issues
-Packaged: 2025-08-28 10:56:07 UTC; jcur002
+Packaged: 2026-06-15 02:55:07 UTC; jcur002
 Author: García-Ródenas, Álvaro [aut],
   Franco, Manuel [aut],
   Vivo, Juana-María [aut],
@@ -42,4 +44,4 @@ Author: García-Ródenas, Álvaro [aut],
   Curran, James [cre]
 Maintainer: "Curran, James" <j.curran@auckland.ac.nz>
 Repository: CRAN
-Date/Publication: 2025-08-28 17:40:10 UTC
+Date/Publication: 2026-06-15 05:10:18 UTC

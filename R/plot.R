@@ -1,7 +1,7 @@
 plotDetCurveWithCI = function(detCurve, color, lwd, type) {
   big_integer = 2147483647
   x = qnorm(detCurve@fpr)
-  y0 = qnorm(detCurve@fnrMedian)
+  y0 = qnorm(detCurve@fnr)
   y1 = qnorm(detCurve@fnrLower)
   y2 = qnorm(detCurve@fnrUpper)
   x[x == Inf] = big_integer
@@ -9,13 +9,16 @@ plotDetCurveWithCI = function(detCurve, color, lwd, type) {
   y0[y0 == -Inf] = -big_integer
   y1[y1 == -Inf] = -big_integer
   y2[y2 == -Inf] = -big_integer
+  y0[y0 == Inf] = big_integer
+  y1[y1 == Inf] = big_integer
+  y2[y2 == Inf] = big_integer
   lines(x,
         y0,
         col = color,
         lwd = lwd,
         type = type)
-  points(x, y1, type = type, col = color)
-  points(x, y2, type = type, col = color)
+  lines(x, y1, col = color)
+  lines(x, y2, col = color)
   bandColor = rgb(col2rgb(color)[1] / 255,
                   col2rgb(color)[2] / 255,
                   col2rgb(color)[3] / 255,
@@ -36,6 +39,7 @@ plotDetCurve = function(detCurve, color, lwd) {
   y[y == Inf] = big_integer
   lines(x, y, col = color, lwd = lwd)
 }
+
 
 plotDETs = function(dets,
                     xlim = c(0.05, 50),
@@ -121,9 +125,11 @@ plotDETs = function(dets,
 
 
 plotROCCurves = function(dets,
-                         xlim = c(-0.1, 1.1),
+                         xlim = c(0, 1),
+                         ylim = c(0, 1),
                          col = c("black", "blue", "red", "green", "yellow"),
                          labels_x = seq(0, 1, 0.1),
+                         labels_y = seq(0, 1, 0.1),
                          xlab = "1 - Specificity",
                          ylab = "Sensitivity",
                          panel.first = grid(nx = 20, ny = 20),
@@ -131,46 +137,61 @@ plotROCCurves = function(dets,
                          lwd = 2,
                          lty = 1,
                          ...) {
+  if (missing(xlim) && !missing(ylim)) {
+    xlim = sort(1-ylim)
+  }
+  if (!missing(xlim) && missing(ylim)) {
+    ylim = sort(1-xlim)
+  }
+  lims_x = xlim
+  lims_y = ylim
+  interval = c(1, length(labels_x))
+  while (labels_x[interval[1]] < xlim[1] ||
+         labels_x[interval[2]] > xlim[2]) {
+    if (labels_x[interval[1]] < xlim[1])
+      interval[1] = interval[1] + 1
+    if (labels_x[interval[2]] > xlim[2])
+      interval[2] = interval[2] - 1
+  }
+  labels_x = c(xlim[1], labels_x[interval[1]:interval[2]], xlim[2])
+  interval = c(1, length(labels_y))
+  while (labels_y[interval[1]] < ylim[1] ||
+         labels_y[interval[2]] > ylim[2]) {
+    if (labels_y[interval[1]] < ylim[1])
+      interval[1] = interval[1] + 1
+    if (labels_y[interval[2]] > ylim[2])
+      interval[2] = interval[2] - 1
+  }
+  labels_y = c(ylim[1], labels_y[interval[1]:interval[2]], ylim[2])
+  plot(
+    x = NaN,
+    y = NaN,
+    type = "n",
+    xlab = xlab,
+    xlim = lims_x,
+    ylab = ylab,
+    ylim = lims_y,
+    xaxt = "n",
+    yaxt = "n",
+    panel.first = panel.first,
+    ...
+  )
+  axis(1, at = labels_x, labels = labels_x)
+  axis(2, at = labels_y, labels = labels_y)
+  lines(seq(0, 1, 0.1), seq(0, 1, 0.1), col = "gray", lty = 6)
   detCurves = dets@detCurves
   ncurves = length(detCurves)
   if (ncurves > length(col)) {
     col = rep(col, ceiling(ncurves / length(col)))
   }
   for (i in seq(ncurves)) {
-    if (i == 1) {
-      plot(
-        detCurves[[i]]@fpr,
-        1 - detCurves[[i]]@fnr,
-        type = type,
-        panel.first = panel.first,
-        col = col[i],
-        lwd = lwd,
-        lty = lty,
-        xlim = xlim,
-        ylim = xlim,
-        xlab = xlab,
-        ylab = ylab,
-        xaxt = 'n',
-        yaxt = 'n',
-        ...
-      )
-    } else {
-      lines(
-        detCurves[[i]]@fpr,
-        1 - detCurves[[i]]@fnr,
-        lty = lty,
-        col = col[i],
-        lwd = lwd,
-        xaxt = 'n',
-        yaxt = 'n',
-        ...
-      )
-    }
+    x = detCurves[[i]]@fpr
+    y = 1 - detCurves[[i]]@fnr
+    x = c(1, x, 0)
+    y = c(1, y, 0)
+    lines(x, y, col = col[i], lwd = lwd)
   }
-  axis(1, at = labels_x, labels = labels_x)
-  axis(2, at = labels_x, labels = labels_x)
-  lines(seq(0, 1, 0.1), seq(0, 1, 0.1), col = "gray", lty = 6)
-  if (!is.null(names(detCurves))) {
+  if (ncurves != 1 && !is.null(names(detCurves))) {
     legend(
       "bottomright",
       legend = names(detCurves),
@@ -181,10 +202,13 @@ plotROCCurves = function(dets,
   }
 }
 
+
 plotROCCurvesWithCI = function(dets,
-                               xlim = c(-0.1, 1.1),
+                               xlim = c(0, 1),
+                               ylim = c(0, 1),
                                col = c("black", "blue", "red", "green", "yellow"),
                                labels_x = seq(0, 1, 0.1),
+                               labels_y = seq(0, 1, 0.1),
                                xlab = "1 - Specificity",
                                ylab = "Sensitivity",
                                panel.first = grid(nx = 20, ny = 20),
@@ -192,39 +216,65 @@ plotROCCurvesWithCI = function(dets,
                                lwd = 2,
                                lty = 1,
                                ...) {
-  detCurves = dets@detCurves
-  ncurves = length(detCurves)
-  if (ncurves > length(col)) {
-    col = rep(col, ceiling(ncurves / length(col)))
+  if (missing(xlim) && !missing(ylim)) {
+    xlim = sort(1-ylim)
   }
+  if (!missing(xlim) && missing(ylim)) {
+    ylim = sort(1-xlim)
+  }
+  lims_x = xlim
+  lims_y = ylim
+  interval = c(1, length(labels_x))
+  while (labels_x[interval[1]] < xlim[1] ||
+         labels_x[interval[2]] > xlim[2]) {
+    if (labels_x[interval[1]] < xlim[1])
+      interval[1] = interval[1] + 1
+    if (labels_x[interval[2]] > xlim[2])
+      interval[2] = interval[2] - 1
+  }
+  labels_x = c(xlim[1], labels_x[interval[1]:interval[2]], xlim[2])
+  interval = c(1, length(labels_y))
+  while (labels_y[interval[1]] < ylim[1] ||
+         labels_y[interval[2]] > ylim[2]) {
+    if (labels_y[interval[1]] < ylim[1])
+      interval[1] = interval[1] + 1
+    if (labels_y[interval[2]] > ylim[2])
+      interval[2] = interval[2] - 1
+  }
+  labels_y = c(ylim[1], labels_y[interval[1]:interval[2]], ylim[2])
   plot(
     x = NaN,
     y = NaN,
     type = "n",
     xlab = xlab,
-    xlim = xlim,
-    ylim  = xlim,
+    xlim = lims_x,
     ylab = ylab,
+    ylim = lims_y,
+    xaxt = "n",
+    yaxt = "n",
     panel.first = panel.first,
     ...
   )
+  axis(1, at = labels_x, labels = labels_x)
+  axis(2, at = labels_y, labels = labels_y)
+  lines(seq(0, 1, 0.1), seq(0, 1, 0.1), col = "gray", lty = 6)
+  detCurves = dets@detCurves
+  ncurves = length(detCurves)
+  if (ncurves > length(col)) {
+    col = rep(col, ceiling(ncurves / length(col)))
+  }
   for (i in seq(ncurves)) {
     x = detCurves[[i]]@fpr
-    y0 = 1 - detCurves[[i]]@fnrLower
-    y1 = 1 - detCurves[[i]]@fnrMedian
+    y0 = 1 - detCurves[[i]]@fnr
+    y1 = 1 - detCurves[[i]]@fnrLower
     y2 = 1 - detCurves[[i]]@fnrUpper
-    x[x == Inf] = 1
-    x[x == -Inf] = 0
-    y0[y0 == -Inf] = 0
-    y1[y1 == -Inf] = 0
-    y2[y2 == -Inf] = 0
     x = c(1, x, 0)
     y0 = c(1, y0, 0)
     y1 = c(1, y1, 0)
     y2 = c(1, y2, 0)
     lines(x, y0, col = col[i], lwd = lwd)
-    points(x, y1, type = type, col = col[i])
-    points(x, y2, type = type, col = col[i])
+    lines(x, y1, col = col[i])
+    lines(x, y2, col = col[i])
     bandColor = rgb(col2rgb(col[i])[1] / 255,
                     col2rgb(col[i])[2] / 255,
                     col2rgb(col[i])[3] / 255,
@@ -234,10 +284,7 @@ plotROCCurvesWithCI = function(dets,
             col = bandColor,
             border = NA)
   }
-  axis(1, at = labels_x, labels = labels_x)
-  axis(2, at = labels_x, labels = labels_x)
-  lines(seq(0, 1, 0.1), seq(0, 1, 0.1), col = "gray", lty = 6)
-  if (!is.null(names(detCurves))) {
+  if (ncurves != 1 && !is.null(names(detCurves))) {
     legend(
       "bottomright",
       legend = names(detCurves),
@@ -248,12 +295,13 @@ plotROCCurvesWithCI = function(dets,
   }
 }
 
+
 #' DET Curves plot
 #'
-#' From a 'DETs' object generated with the \code{detc} function, this function plots the different DET curves included in the object. It includes the
-#' Confidence band in case the DETs curves were calculated with a confidence interval.
+#' From a 'DETs' object generated with the \code{detc} function, this function plots the DET curves included in the object. It includes
+#' a confidence band when the DET curves were calculated with a confidence interval.
 #'
-#' It accepts plot personalization with graphical parameters (see \code{\link{plot}}, for more details):
+#' It accepts plot customisation with graphical parameters (see \code{\link{plot}}, for more details):
 #'
 #' -  'xlim': a numeric vector of length 2, giving the x coordinate range of the plot.
 #'
@@ -261,15 +309,15 @@ plotROCCurvesWithCI = function(dets,
 #'
 #' -  'col': a vector of colors, specifying the color for each DET curve.
 #'
-#' -  'labels_x': a numeric vector indicating the labels of the X axis.
+#' -  'labels_x': a numeric vector indicating the labels of the x-axis.
 #'
-#' -  'labels_y': a numeric vector indicating the labels of the Y axis.
+#' -  'labels_y': a numeric vector indicating the labels of the y-axis.
 #'
-#' -  'xlab': a main label for the X axis.
+#' -  'xlab': a main label for the x-axis.
 #'
-#' -  'ylab': a main label for the Y axis.
+#' -  'ylab': a main label for the y-axis.
 #'
-#' -  'panel.first': a background grid is plotted. It can be used for modifying the background style of the graphic.
+#' -  'panel.first': a background grid is plotted. It can be used for modifying the background style of the plot.
 #'
 #' @param x An object of class "DETs".
 #' @param ... Further graphical arguments passed to the \code{plot} function.
@@ -280,7 +328,7 @@ plotROCCurvesWithCI = function(dets,
 #' @examples
 #' library(DET)
 #' n = 5000
-#' #Predictors with normal distribution
+#' # Predictors with normal distribution
 #' set.seed(1235)
 #' scoreNegative1 = rnorm(n, mean = 0.25, sd = 0.125)
 #' set.seed(5321)
@@ -326,7 +374,7 @@ plot.DETs = function(x,
 #' @examples
 #' library(DET)
 #' n = 5000
-#' #Predictors with normal distribution
+#' # Predictors with normal distribution
 #' set.seed(1235)
 #' scoreNegative = rnorm(n, mean = 0.25, sd = 0.125)
 #' set.seed(11452)
@@ -344,27 +392,28 @@ plot.DET = function (x, ...) {
   plot.DETs(new("DETs", detCurves = list(detCurve = x)), ...)
 }
 
+
 #' ROC Curves plot
 #'
-#' From a 'DETs' object, this function plots the ROC curves associated with the DETs curves of the object. It includes the
-#' Confidence band when CIs were computed for the DETs curves.
+#' From a 'DETs' object, this function plots the ROC curves associated with the DET curves in the object. It includes a
+#' confidence band when CIs were computed for the DET curves.
 #'
-#' It accepts plot personalization with graphical parameters (see \code{\link{plot}}, for more details):
+#' It accepts plot customisation with graphical parameters (see \code{\link{plot}}, for more details):
 #'
 #' -  'xlim': a numeric vector of length 2, giving the x and y coordinate ranges of the plot.
 #'
 #' -  'col': a vector of colors, specifying the color for each DET curve.
 #'
-#' -  'labels_x': a numeric vector indicating the labels of the X and Y axes.
+#' -  'labels_x': a numeric vector indicating the labels of the x- and y-axes.
 #'
-#' -  'xlab': a main label for the X axis.
+#' -  'xlab': a main label for the x-axis.
 #'
-#' -  'ylab': a main label for the Y axis.
+#' -  'ylab': a main label for the y-axis.
 #'
-#' -  'panel.first': a background grid is plotted. It can be used for modifying the background style of the graphic.
+#' -  'panel.first': a background grid is plotted. It can be used for modifying the background style of the plot.
 #'
 #' @param dets An object of class "DETs".
-#' @param ... Further graphical arguments passed to the plot function.
+#' @param ... Further graphical arguments passed to the \code{plot} function.
 #' @export
 #' @importFrom graphics axis grid legend lines plot points polygon par
 #' @importFrom stats qnorm
@@ -372,7 +421,7 @@ plot.DET = function (x, ...) {
 #' @examples
 #' library(DET)
 #' n = 5000
-#' #Predictors with normal distribution
+#' # Predictors with normal distribution
 #' set.seed(1235)
 #' scoreNegative1 = rnorm(n, mean = 0.25, sd = 0.125)
 #' set.seed(5321)
@@ -408,11 +457,12 @@ plotROCs = function (dets, ...) {
   }
 }
 
+
 #' ROC Curve plot
 #'
 #' From a 'DET' object, this function plots the ROC curve associated with the DET curve of the object. It also draws the confidence band when it is available in the object.
 #' @param dets A 'DET' object from the list of a 'DETs' object computed by the \code{detc} function.
-#' @param ... Further graphical arguments passed to the plot function.
+#' @param ... Further graphical arguments passed to the \code{plot} function.
 #' @export
 #' @importFrom graphics axis grid legend lines plot points polygon par
 #' @importFrom stats qnorm
@@ -420,7 +470,7 @@ plotROCs = function (dets, ...) {
 #' @examples
 #' library(DET)
 #' n = 5000
-#' #Predictors with normal distribution
+#' # Predictors with normal distribution
 #' set.seed(1235)
 #' scoreNegative = rnorm(n, mean = 0.25, sd = 0.125)
 #' set.seed(11452)
@@ -438,14 +488,15 @@ plotROC = function (dets, ...) {
   plotROCs(new("DETs", detCurves = list(detCurve = dets)), ...)
 }
 
+
 #' EER Plot
 #'
-#' From a 'DETs' object, this function plots the EER points of each classifier within the same graph of the DETs curves.
+#' From a 'DETs' object, this function plots the EER points of each classifier on the same graph as the DET curves.
 #' @param dets An object of class "DETs".
 #' @param pch Symbol used for plotting the EER points, by default \code{pch = 19}.
 #' @param col A vector of colors, specifying the color of the points for each DET curve.
 #' @param lwd Line width used for drawing symbols, by default \code{lwd = 3}.
-#' @param ... Further graphical arguments passed to the plot function.
+#' @param ... Further graphical arguments passed to the \code{plot} function.
 #' @param ... Further graphical arguments passed to the \code{points} function. For example, by default \code{pch = 19} and \code{lwd = 3} (see \code{\link{points}}, for more details).
 #' @export
 #' @importFrom graphics points
@@ -453,7 +504,7 @@ plotROC = function (dets, ...) {
 #' @examples
 #' library(DET)
 #' n = 5000
-#' #Predictors with normal distribution
+#' # Predictors with normal distribution
 #' set.seed(1235)
 #' scoreNegative1 = rnorm(n, mean = 0.25, sd = 0.125)
 #' set.seed(5321)

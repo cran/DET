@@ -1,19 +1,18 @@
-
 #' Show the structure of a DET object
 #'
 #' From a 'DETs' object (generated with the \code{detc} function), the function shows the different attributes of each curve with a brief description, which have to be used to get the results for each curve.
 #' @param dets An object of class "DETs".
 #' @export
-show.DETs <- function(dets) {
-  if (!is(dets, "DETs")) {
+show.DETs = function(dets) {
+ if (is(dets, "DETs")) {
     cat("**Parameters of the Detection Error Tradeoff (DET) Curves**\n\n")
     cat("Classifiers names:", names(dets@detCurves), "\n\n")
     cat("*To access the list of DET Curves, take the attribute @detCurves\n")
-    cat("*For each DET Curve, you can get the following attributes:\n\n")
+    cat("*For each DET Curve,  you can get the following attributes:\n\n")
     cat("@fpr            false positive rates\n")
     cat("@fnr            false negative rates\n")
     cat("@thresholds     thresholds corresponding to points of the DET curve\n")
-    cat("@eer            Equal Error Rate\n")
+    cat("@eer            Equal Error Rate\n\n")
     det = dets@detCurves[[1]]
     if (is.numeric(det@conf) && !is.nan(det@conf)) {
       cat("The",
@@ -29,3 +28,14 @@ show.DETs <- function(dets) {
     }
   }
 }
+
+#' Show the structure of a DETs object
+#'
+#' Registers the S4 \code{show} method for \code{DETs} objects so that
+#' \code{show(object)} and automatic console display use the same output as
+#' \code{show.DETs(object)}.
+#'
+#' @param object An object of class \code{DETs}.
+setMethod("show", "DETs", function(object) {
+  show.DETs(object)
+})

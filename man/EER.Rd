@@ -7,13 +7,13 @@
 EER(fpr, fnr)
 }
 \arguments{
-\item{fpr}{A numeric vector representing the False Positive Rates.}
+\item{fpr}{A numeric vector representing the false positive rates.}
 
-\item{fnr}{A numeric vector representing the False Negative Rates.}
+\item{fnr}{A numeric vector representing the false negative rates.}
 }
 \value{
 The Equal Error Rate (EER).
 }
 \description{
-From two vectors of false positive and false negative rates which define the points of the curve, the function computes the Equal Error Rate (EER).
+From two vectors of false positive and false negative rates that define the points of the curve, the function computes the Equal Error Rate (EER).
 }
